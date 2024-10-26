@@ -1,0 +1,93 @@
+
+<!doctype html>
+<html>
+    <head>
+        <title>Socket.IO Chat</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+            #messages {
+                list-style-type: none;
+                padding: 0;
+            }
+            #messages li {
+                padding: 8px;
+                margin: 4px;
+                background: #f1f1f1;
+            }
+            #form {
+                display: flex;
+            }
+            #input {
+                flex-grow: 1;
+                padding: 10px;
+            }
+            #send {
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input
+                id="input"
+                autocomplete="off"
+                placeholder="Type your message here..."
+            />
+            <select id="recipient">
+                <option value="">Select recipient</option>
+            </select>
+            <button id="send">Send</button>
+        </form>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+            const form = document.getElementById("form");
+            const input = document.getElementById("input");
+            const messages = document.getElementById("messages");
+            const recipientSelect = document.getElementById("recipient");
+
+            // Prompt for username
+            const username = prompt("Enter your username:");
+            socket.emit("join", username);
+
+            // Update active users
+            socket.on("activeUsers", function (users) {
+                recipientSelect.innerHTML =
+                    '<option value="">Select recipient</option>'; // Reset the select
+                users.forEach(user => {
+                    const option = document.createElement("option");
+                    option.value = user.socketId; // Assuming you have a way to get the socket ID
+                    option.textContent = user.username; // Display the username
+                    recipientSelect.appendChild(option);
+                });
+            });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const recipientId = recipientSelect.value;
+                if (input.value && recipientId) {
+                    socket.emit("private message", {
+                        recipientId: recipientId,
+                        msg: input.value
+                    });
+                    input.value = "";
+                }
+            });
+
+            socket.on("private message", function ({ from, msg }) {
+                const item = document.createElement("li");
+                item.textContent = `From ${from}: ${msg}`;
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+        </script>
+
+        <script>
+            window.location.href = "http://localhost:3000";
+        </script>
+    </body>
+</html>
