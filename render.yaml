@@ -1,0 +1,16 @@
+version: 1
+services:
+  - type: web
+    name: findme
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /
+    routes:
+      - src: /
+        dest: /
